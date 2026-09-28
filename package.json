@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@tech-leads-club/agent-skills": "^1.4.9",
+    "@types/three": "^0.186.0",
     "@vitejs/plugin-vue": "^6.0.9",
     "@vitest/coverage-v8": "^5.0.1",
     "@vue/test-utils": "^2.5.1",
@@ -21,5 +22,10 @@
     "vitest": "^5.0.1",
     "vue": "^3.5.43",
     "vue-tsc": "^3.3.11"
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.48.0",
+    "lucide-vue-next": "^1.0.0",
+    "three": "^0.186.1"
   }
 }
