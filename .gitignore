@@ -1,0 +1,75 @@
+# ==========================================
+# Orion Stellar Solutions - SDD .gitignore
+# ==========================================
+
+# ------------------------------------------
+# Dependências de Pacotes (Node, Bun, Python)
+# ------------------------------------------
+node_modules/
+.pnpm-store/
+.yarn/
+vendor/
+__pycache__/
+*.pyc
+
+# ------------------------------------------
+# Builds e Saídas de Compilação
+# ------------------------------------------
+dist/
+build/
+.output/
+.astro/
+.nuxt/
+.next/
+out/
+*.egg-info/
+.venv/
+env/
+
+# ------------------------------------------
+# Infraestrutura Edge e Cloudflare
+# ------------------------------------------
+.wrangler/
+.cloudflare/
+
+# ------------------------------------------
+# Cobertura de Testes e Relatórios de Qualidade
+# ------------------------------------------
+coverage/
+.nyc_output/
+.vitest/
+.lighthouseci/
+
+# ------------------------------------------
+# Ambientes, Chaves e Variáveis Secretas
+# ------------------------------------------
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ------------------------------------------
+# Arquivos de Agentes de IA e Scratchpads
+# ------------------------------------------
+.agents/scratch/
+.agents/tmp/
+*.tmp
+
+# ------------------------------------------
+# Logs e Arquivos do Sistema Operacional / IDEs
+# ------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.user

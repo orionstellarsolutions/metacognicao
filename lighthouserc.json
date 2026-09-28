@@ -1,0 +1,12 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "npm run preview",
+      "startServerReadyPattern": "ready|Local:|http",
+      "url": ["http://localhost:3000"]
+    },
+    "assert": {
+      "budgetsFile": "./lighthouse-budget.json"
+    }
+  }
+}

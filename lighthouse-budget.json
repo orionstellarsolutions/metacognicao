@@ -1,0 +1,24 @@
+[
+  {
+    "resourceSizes": [],
+    "resourceCounts": [],
+    "timings": [
+      {
+        "metric": "largest-contentful-paint",
+        "budget": 2500
+      },
+      {
+        "metric": "cumulative-layout-shift",
+        "budget": 0.1
+      },
+      {
+        "metric": "total-blocking-time",
+        "budget": 200
+      },
+      {
+        "metric": "interactive",
+        "budget": 3500
+      }
+    ]
+  }
+]

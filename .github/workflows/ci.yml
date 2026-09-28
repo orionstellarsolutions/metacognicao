@@ -1,0 +1,45 @@
+name: SDD Quality & Mobile Performance Gate
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  quality-and-performance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar Dependências
+        run: npm ci
+
+      - name: Executar Linting
+        run: npm run lint
+
+      - name: Checagem Estática de Tipos
+        run: npm run type-check
+
+      - name: Testes Unitários e Cobertura
+        run: npm run test:coverage
+
+      - name: Build da Aplicação
+        run: npm run build
+
+      - name: Auditoria de Performance Mobile (Lighthouse CI)
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            http://localhost:3000
+          startServerCommand: npm run preview
+          uploadTarget: 'temporary-public-storage'
+          budgetPath: './lighthouse-budget.json'
