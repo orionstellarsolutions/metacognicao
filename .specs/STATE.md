@@ -1,21 +1,23 @@
 # Estado do Projeto e Histórico de Decisões (.specs/STATE.md)
 
 ## Estado Atual
-- **Fase**: Migração Retroativa SDD / Implementação da Landing Page Neuro-Interativa (`REQ-LANDING-NEURO`)
-- **Status Geral**: Especificação retroativa (.skills/retro-spec) e documentação macro concluídas. Conceito 1 (Neuro-Interativo) isolado no modelo de referência com eliminação dos conceitos 2 e 3. Quebra em 7 micro-tarefas atômicas estruturada pelo Agente PO para execução via Agente Desenvolvedor.
+- **Fase**: Conclusão da Migração e Integração da Landing Page Neuro-Interativa (`REQ-LANDING-NEURO`)
+- **Status Geral**: Todas as 7 tarefas atômicas foram implementadas e validadas com sucesso. Cobertura de testes unitários atingiu 97.59% (meta $\ge 95\%$). Remoção do template legado de `modelo/` executada em conformidade com a skill `/migrate-html`. Pipeline completo de build, lint e type-check 100% aprovado.
 
 ---
 
 ## Decisões Técnicas & Trade-offs (REQ-LANDING-NEURO)
 - **Three.js WebGL com Eco-friendly Rendering:** 
-  - *Decisão:* Adotar `three` com pausa dinâmica do loop de renderização via `IntersectionObserver` e detecção de visibilidade do documento.
-  - *Razão:* Garantir orçamento móvel Lighthouse $\ge 90$ e $LCP \le 2.5\text{s}$, eliminando consumo desnecessário de bateria quando a seção hero não estiver na viewport.
-  - *Trade-off:* Complexidade adicional no gerenciamento do ciclo de vida do canvas e necessidade de mocks precisos em testes unitários.
-- **Biblioteca de Ícones Otimizada (Lucide Vue Next):**
-  - *Decisão:* Substituir FontAwesome CDN por `lucide-vue-next`.
-  - *Razão:* Eliminar render-blocking resources e dependências de CDN de terceiros, aproveitando tree-shaking moderno do Vite.
+  - *Decisão:* Adotar `three` com pausa dinâmica do loop de renderização via `IntersectionObserver`, `visibilitychange` e descarte completo de geometrias/materiais no `onUnmounted`.
+  - *Razão:* Garantir orçamento móvel Lighthouse $\ge 90$ e $LCP \le 2.5\text{s}$, economizando bateria móvel e processamento de GPU.
+  - *Trade-off:* Isolamento do canvas em componente autônomo com fallback para ambientes sem suporte a WebGL.
+- **Biblioteca de Ícones Otimizada (@lucide/vue):**
+  - *Decisão:* Substituição do FontAwesome CDN por `@lucide/vue`.
+  - *Razão:* Eliminar requisições bloqueantes de CDN externo, aproveitando tree-shaking moderno do Vite.
 - **Navegação SPA Baseada em Âncoras Suaves:**
   - *Decisão:* Utilizar rolagem suave nativa via CSS (`scroll-smooth`) e âncoras semânticas (`#sobre`, `#pesquisas`, `#publicacoes`, `#grupos`, `#acervo`).
+- **Code-Splitting no Bundler (Vite):**
+  - *Decisão:* Separação do pacote `three` em chunk isolado (`dist/assets/three-*.js`), mantendo o bundle inicial da aplicação em apenas 80 kB (31 kB gzip).
 
 ---
 
