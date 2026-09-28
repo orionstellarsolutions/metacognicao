@@ -1,8 +1,21 @@
 # Estado do Projeto e Histórico de Decisões (.specs/STATE.md)
 
 ## Estado Atual
-- **Fase**: Manutenção / Infraestrutura CI/CD e Qualidade
-- **Status Geral**: Pipeline completo de CI/CD (lint, type-check, test:coverage, build, lighthouse) estabilizado e validado.
+- **Fase**: Migração Retroativa SDD / Implementação da Landing Page Neuro-Interativa (`REQ-LANDING-NEURO`)
+- **Status Geral**: Especificação retroativa (.skills/retro-spec) e documentação macro concluídas. Conceito 1 (Neuro-Interativo) isolado no modelo de referência com eliminação dos conceitos 2 e 3. Quebra em 7 micro-tarefas atômicas estruturada pelo Agente PO para execução via Agente Desenvolvedor.
+
+---
+
+## Decisões Técnicas & Trade-offs (REQ-LANDING-NEURO)
+- **Three.js WebGL com Eco-friendly Rendering:** 
+  - *Decisão:* Adotar `three` com pausa dinâmica do loop de renderização via `IntersectionObserver` e detecção de visibilidade do documento.
+  - *Razão:* Garantir orçamento móvel Lighthouse $\ge 90$ e $LCP \le 2.5\text{s}$, eliminando consumo desnecessário de bateria quando a seção hero não estiver na viewport.
+  - *Trade-off:* Complexidade adicional no gerenciamento do ciclo de vida do canvas e necessidade de mocks precisos em testes unitários.
+- **Biblioteca de Ícones Otimizada (Lucide Vue Next):**
+  - *Decisão:* Substituir FontAwesome CDN por `lucide-vue-next`.
+  - *Razão:* Eliminar render-blocking resources e dependências de CDN de terceiros, aproveitando tree-shaking moderno do Vite.
+- **Navegação SPA Baseada em Âncoras Suaves:**
+  - *Decisão:* Utilizar rolagem suave nativa via CSS (`scroll-smooth`) e âncoras semânticas (`#sobre`, `#pesquisas`, `#publicacoes`, `#grupos`, `#acervo`).
 
 ---
 
