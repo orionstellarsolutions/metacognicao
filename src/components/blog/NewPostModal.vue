@@ -98,6 +98,7 @@ const handleCategorySelectChange = (event: Event) => {
 const onCategoryCreated = (newCat: Category) => {
   categories.value.push(newCat);
   categoryId.value = newCat.id;
+  isCategoryModalOpen.value = false;
 };
 
 // Resumo com IA
@@ -149,6 +150,7 @@ const onUnsplashSelect = (img: UnsplashImage) => {
   coverUrl.value = img.url;
   coverAlt.value = img.alt || `Imagem ilustrativa por ${img.author}`;
   coverFileName.value = `Unsplash (${img.author})`;
+  isUnsplashModalOpen.value = false;
 };
 
 // Comandos da Toolbar Rica

@@ -12,14 +12,18 @@ const emit = defineEmits<{
 const searchQuery = ref('educacao');
 const images = ref<UnsplashImage[]>([]);
 const isLoading = ref(false);
+const errorMessage = ref<string | null>(null);
 const selectedId = ref<string | null>(null);
 
 const quickTags = ['Educação', 'Neurociência', 'Crianças', 'Livros', 'Tecnologia'];
 
 const loadImages = async (query: string) => {
   isLoading.value = true;
+  errorMessage.value = null;
   try {
     images.value = await blogService.searchUnsplash(query);
+  } catch (err) {
+    errorMessage.value = err instanceof Error ? err.message : 'Erro ao buscar imagens no Unsplash.';
   } finally {
     isLoading.value = false;
   }
@@ -111,7 +115,11 @@ onMounted(() => {
 
       <!-- Grid Content -->
       <div class="flex-1 overflow-y-auto p-6">
-        <div v-if="isLoading" class="flex flex-col items-center justify-center py-12 text-gray-400 gap-3">
+        <div v-if="errorMessage" class="text-center py-12 text-red-400 text-sm" data-testid="unsplash-error">
+          {{ errorMessage }}
+        </div>
+
+        <div v-else-if="isLoading" class="flex flex-col items-center justify-center py-12 text-gray-400 gap-3">
           <Loader2 class="w-8 h-8 animate-spin text-brand-purple" />
           <p class="text-sm">Buscando imagens em alta resolução...</p>
         </div>

@@ -39,6 +39,16 @@ describe('Modais Auxiliares do Blog', () => {
       await wrapper.find('[data-testid="btn-close-category"]').trigger('click');
       expect(wrapper.emitted('close')).toBeTruthy();
     });
+
+    it('deve exibir mensagem de erro se a criação falhar', async () => {
+      vi.spyOn(blogService, 'createCategory').mockRejectedValue(new Error('Falha no banco D1'));
+      const wrapper = mount(CategoryModal);
+      await wrapper.find('[data-testid="input-category-name"]').setValue('Neurociência');
+      await wrapper.find('form').trigger('submit.prevent');
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="category-error"]').text()).toContain('Falha no banco D1');
+    });
   });
 
   describe('UnsplashModal.vue', () => {
@@ -54,12 +64,25 @@ describe('Modais Auxiliares do Blog', () => {
         }
       ];
 
-      vi.spyOn(blogService, 'searchUnsplash').mockResolvedValue(mockImages);
+      const searchSpy = vi.spyOn(blogService, 'searchUnsplash').mockResolvedValue(mockImages);
 
       const wrapper = mount(UnsplashModal);
       await flushPromises();
 
       expect(wrapper.find('[data-testid="input-unsplash-query"]').exists()).toBe(true);
+
+      // Executa busca com nova query
+      await wrapper.find('[data-testid="input-unsplash-query"]').setValue('neurologia');
+      await wrapper.find('form').trigger('submit.prevent');
+      await flushPromises();
+
+      expect(searchSpy).toHaveBeenCalledWith('neurologia');
+
+      // Clica em uma tag rápida
+      const quickTagBtn = wrapper.findAll('button').find(b => b.text().includes('Neurociência'));
+      await quickTagBtn?.trigger('click');
+      await flushPromises();
+      expect(searchSpy).toHaveBeenCalledWith('Neurociência');
 
       const item = wrapper.find('[data-testid="unsplash-item-img-1"]');
       expect(item.exists()).toBe(true);
@@ -68,6 +91,19 @@ describe('Modais Auxiliares do Blog', () => {
       await item.trigger('click');
 
       expect(wrapper.emitted('select')?.[0]?.[0]).toEqual(mockImages[0]);
+      expect(wrapper.emitted('close')).toBeTruthy();
+    });
+
+    it('deve lidar com erro na busca do Unsplash e fechar modal', async () => {
+      vi.spyOn(blogService, 'searchUnsplash').mockRejectedValue(new Error('Erro de API'));
+
+      const wrapper = mount(UnsplashModal);
+      await flushPromises();
+
+      expect(wrapper.text()).toContain('Erro de API');
+
+      // Botão fechar
+      await wrapper.find('[data-testid="btn-close-unsplash"]').trigger('click');
       expect(wrapper.emitted('close')).toBeTruthy();
     });
   });

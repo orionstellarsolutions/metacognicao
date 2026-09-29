@@ -162,6 +162,7 @@ onMounted(() => {
           <button
             type="button"
             class="text-xs text-gray-400 hover:text-brand-accent transition flex items-center gap-1"
+            data-testid="btn-admin-new-cat"
             @click="isCategoryModalOpen = true"
           >
             <Plus class="w-3.5 h-3.5" /> Adicionar Categoria

@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import NewPostModal from '../NewPostModal.vue';
 import { blogService } from '../../../services/blogService';
 import * as aiSummarizer from '../../../services/aiSummarizer';
+import * as imageCompressionModule from '../../../services/imageCompression';
 
 describe('NewPostModal.vue', () => {
   beforeEach(() => {
@@ -91,4 +92,85 @@ describe('NewPostModal.vue', () => {
     expect(wrapper.emitted('save')).toBeTruthy();
     expect(wrapper.emitted('close')).toBeTruthy();
   });
+
+  it('TEST-POST-05: deve executar comandos da toolbar e inserção de cabeçalhos', async () => {
+    (document as any).execCommand = vi.fn().mockReturnValue(true);
+    const wrapper = mount(NewPostModal);
+    await flushPromises();
+
+    // Bold, Italic, Headings, Lists
+    const buttons = wrapper.findAll('[data-testid="editor-toolbar"] button');
+    for (const btn of buttons) {
+      await btn.trigger('click');
+    }
+
+    expect((document as any).execCommand).toHaveBeenCalledWith('bold', false, undefined);
+    expect((document as any).execCommand).toHaveBeenCalledWith('italic', false, undefined);
+  });
+
+  it('TEST-POST-06: deve abrir e integrar com UnsplashModal e CategoryModal', async () => {
+    const wrapper = mount(NewPostModal);
+    await flushPromises();
+
+    // Categoria modal
+    await wrapper.find('[data-testid="btn-open-category-modal"]').trigger('click');
+    expect(wrapper.findComponent({ name: 'CategoryModal' }).exists()).toBe(true);
+
+    // Simula emissão de categoria criada
+    const categoryModal = wrapper.findComponent({ name: 'CategoryModal' });
+    await categoryModal.vm.$emit('created', { id: 'cat-new', name: 'NEUROBIOLOGIA', slug: 'neurobiologia' });
+    await wrapper.vm.$nextTick();
+    expect(wrapper.findComponent({ name: 'CategoryModal' }).exists()).toBe(false);
+
+    // Unsplash modal
+    await wrapper.find('[data-testid="btn-open-unsplash"]').trigger('click');
+    expect(wrapper.findComponent({ name: 'UnsplashModal' }).exists()).toBe(true);
+
+    const unsplashModal = wrapper.findComponent({ name: 'UnsplashModal' });
+    await unsplashModal.vm.$emit('select', {
+      url: 'https://images.unsplash.com/photo-brain',
+      alt: 'Cérebro brilhante'
+    });
+    await wrapper.vm.$nextTick();
+    expect(wrapper.findComponent({ name: 'UnsplashModal' }).exists()).toBe(false);
+  });
+
+  it('TEST-POST-07: deve exibir erro se a gravação do post falhar', async () => {
+    vi.spyOn(blogService, 'createPost').mockRejectedValue(new Error('Erro de conexão com D1'));
+
+    const wrapper = mount(NewPostModal);
+    await flushPromises();
+
+    await wrapper.find('[data-testid="input-post-title"]').setValue('Post com Falha');
+    await wrapper.find('[data-testid="input-display-date"]').setValue('29/09/2026');
+    await wrapper.find('[data-testid="textarea-post-excerpt"]').setValue('Resumo');
+
+    await wrapper.find('[data-testid="btn-save-post"]').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="form-error"]').text()).toContain('Erro de conexão com D1');
+  });
+
+  it('TEST-POST-08: deve aceitar upload de arquivo local e comprimir imagem', async () => {
+    vi.spyOn(imageCompressionModule, 'compressImage').mockResolvedValue({
+      dataUrl: 'data:image/jpeg;base64,mockvalidbase64',
+      sizeKb: 120
+    });
+
+    const wrapper = mount(NewPostModal);
+    await flushPromises();
+
+    const file = new File(['mock-img'], 'pesquisa-capa.jpg', { type: 'image/jpeg' });
+    const fileInput = wrapper.find('[data-testid="input-file-cover"]');
+    Object.defineProperty(fileInput.element, 'files', {
+      value: [file]
+    });
+    await fileInput.trigger('change');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('pesquisa-capa.jpg');
+    expect(wrapper.find('img[alt="Preview da capa"]').exists()).toBe(true);
+  });
 });
+
+

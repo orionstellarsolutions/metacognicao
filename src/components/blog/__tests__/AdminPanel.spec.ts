@@ -91,4 +91,42 @@ describe('AdminPanel.vue', () => {
     await wrapper.find('[data-testid="btn-view-post-post-1"]').trigger('click');
     expect(wrapper.emitted('viewPost')?.[0]?.[0]).toEqual(mockPosts[0]);
   });
+
+  it('deve filtrar posts por categoria selecionada', async () => {
+    const wrapper = mount(AdminPanel);
+    await flushPromises();
+
+    const categorySelect = wrapper.find('[data-testid="select-admin-filter"]');
+    await categorySelect.setValue('cat-geral');
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="admin-post-row-post-1"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="admin-post-row-post-2"]').exists()).toBe(false);
+  });
+
+  it('deve abrir modais de NewPost e Category a partir do painel admin', async () => {
+    const wrapper = mount(AdminPanel);
+    await flushPromises();
+
+    // Novo Post
+    await wrapper.find('[data-testid="btn-admin-new-post"]').trigger('click');
+    expect(wrapper.text()).toContain('NOVO POST');
+
+    const newPostModal = wrapper.findComponent({ name: 'NewPostModal' });
+    await newPostModal.vm.$emit('save', mockPosts[0]);
+    await flushPromises();
+
+    // Nova Categoria
+    await wrapper.find('[data-testid="btn-admin-new-cat"]').trigger('click');
+    expect(wrapper.text()).toContain('NOVA CATEGORIA');
+
+    const catModal = wrapper.findComponent({ name: 'CategoryModal' });
+    await catModal.vm.$emit('created', { id: 'cat-3', name: 'PSICOPEDAGOGIA', slug: 'psicopedagogia' });
+    await flushPromises();
+
+    // Fechar painel
+    await wrapper.find('[data-testid="btn-close-admin"]').trigger('click');
+    expect(wrapper.emitted('close')).toBeTruthy();
+  });
 });
+

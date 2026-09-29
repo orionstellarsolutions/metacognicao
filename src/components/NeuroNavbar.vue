@@ -3,6 +3,10 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { Brain, Menu, X } from '@lucide/vue';
 import type { NavItem } from '../types/landing';
 
+const emit = defineEmits<{
+  (e: 'openAdmin'): void;
+}>();
+
 const navItems: NavItem[] = [
   { label: 'Sobre', href: '#sobre' },
   { label: 'Pesquisas', href: '#pesquisas' },
@@ -61,10 +65,18 @@ onUnmounted(() => {
         </a>
       </div>
 
-      <!-- Action Button -->
-      <div class="hidden md:block">
+      <!-- Action Buttons -->
+      <div class="hidden md:flex items-center gap-3">
+        <button
+          type="button"
+          class="text-xs font-bold text-gray-500 hover:text-brand-purple px-3 py-1.5 rounded-full border border-gray-200 hover:border-brand-purple transition"
+          data-testid="btn-nav-admin"
+          @click="emit('openAdmin')"
+        >
+          Admin Blog
+        </button>
         <a
-          href="#acervo"
+          href="#publicacoes"
           class="bg-brand-purple text-white px-6 py-2 rounded-full font-medium hover:bg-brand-dark transition transform hover:scale-105 shadow-lg shadow-purple-500/30 inline-block text-sm"
         >
           Acessar Acervo
@@ -98,8 +110,15 @@ onUnmounted(() => {
       >
         {{ item.label }}
       </a>
+      <button
+        type="button"
+        class="text-left text-gray-700 hover:text-brand-purple font-medium text-sm py-1"
+        @click="closeMobileMenu(); emit('openAdmin');"
+      >
+        Painel Admin (Blog)
+      </button>
       <a
-        href="#acervo"
+        href="#publicacoes"
         class="bg-brand-purple text-white px-5 py-2 rounded-full font-medium text-center text-sm shadow mt-1"
         @click="closeMobileMenu"
       >

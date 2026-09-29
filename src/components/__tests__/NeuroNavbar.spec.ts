@@ -21,7 +21,7 @@ describe('NeuroNavbar.vue', () => {
     expect(wrapper.text()).toContain('Grupos (GAE/GEA)');
     expect(wrapper.text()).toContain('Acessar Acervo');
 
-    const acervoLink = wrapper.find('a[href="#acervo"]');
+    const acervoLink = wrapper.find('a[href="#publicacoes"]');
     expect(acervoLink.exists()).toBe(true);
   });
 
@@ -74,4 +74,27 @@ describe('NeuroNavbar.vue', () => {
 
     expect(wrapper.find('[data-testid="mobile-menu"]').exists()).toBe(false);
   });
+
+  it('TEST-NAV-04: deve emitir evento openAdmin ao clicar no botao de Admin desktop e mobile', async () => {
+    const wrapper = mount(NeuroNavbar);
+
+    const desktopAdminBtn = wrapper.find('[data-testid="btn-nav-admin"]');
+    expect(desktopAdminBtn.exists()).toBe(true);
+    await desktopAdminBtn.trigger('click');
+
+    expect(wrapper.emitted('openAdmin')).toBeTruthy();
+    expect(wrapper.emitted('openAdmin')!.length).toBe(1);
+
+    // Abrir mobile menu e clicar no link admin mobile
+    const toggleButton = wrapper.find('button[aria-label="Abrir menu"]');
+    await toggleButton.trigger('click');
+
+    const mobileAdminBtn = wrapper.findAll('button').find(b => b.text().includes('Painel Admin'));
+    expect(mobileAdminBtn?.exists()).toBe(true);
+    await mobileAdminBtn!.trigger('click');
+
+    expect(wrapper.emitted('openAdmin')!.length).toBe(2);
+    expect(wrapper.find('[data-testid="mobile-menu"]').exists()).toBe(false);
+  });
 });
+

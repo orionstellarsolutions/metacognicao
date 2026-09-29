@@ -85,6 +85,15 @@ describe('Componentes Públicos do Blog', () => {
 
       await wrapper.find('[data-testid="btn-close-reader"]').trigger('click');
       expect(wrapper.emitted('close')).toBeTruthy();
+
+      // Clicar em Concluir Leitura
+      const finishBtn = wrapper.findAll('button').find(b => b.text().includes('Concluir Leitura'));
+      await finishBtn?.trigger('click');
+      expect(wrapper.emitted('close')!.length).toBe(2);
+
+      // Clicar em Voltar ao Acervo
+      await wrapper.find('[data-testid="btn-back-post"]').trigger('click');
+      expect(wrapper.emitted('close')!.length).toBe(3);
     });
 
     it('não deve renderizar nada se o post for nulo', () => {

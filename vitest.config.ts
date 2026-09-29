@@ -5,11 +5,18 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     environment: 'happy-dom',
+    setupFiles: ['./src/testSetup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.vue', 'src/**/*.ts'],
-      exclude: ['src/**/*.spec.ts', 'src/**/*.d.ts', 'src/main.ts']
+      exclude: [
+        'src/**/*.spec.ts',
+        'src/**/*.d.ts',
+        'src/main.ts',
+        'src/testSetup.ts',
+        'src/types/**'
+      ]
     }
   }
 });

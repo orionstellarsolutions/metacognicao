@@ -23,12 +23,18 @@ describe('Serviços do Blog & Admin', () => {
       expect(cleaned).toContain('texto com marcação');
     });
 
-    it('TEST-SRV-02: deve gerar resumo extrativo local baseado em frases completas', () => {
+    it('TEST-SRV-02: deve gerar resumo extrativo local baseado em frases completas e truncamento', () => {
       const text = 'A metacognição é a capacidade de monitorar a própria cognição. Ela transforma o aprendizado dos estudantes em algo consciente e ativo. Pesquisadores de todo o mundo estudam esse fenômeno com rigor.';
       const summary = generateLocalSummary(text, 120);
 
       expect(summary.length).toBeLessThanOrEqual(125);
       expect(summary).toContain('A metacognição é a capacidade');
+
+      // Teste de frase única longa sem pontuação
+      const longSentence = 'Esta é uma frase excessivamente longa sem nenhuma pontuação intermediária que deve ser truncada no último espaço com reticências';
+      const truncated = generateLocalSummary(longSentence, 40);
+      expect(truncated.endsWith('...')).toBe(true);
+      expect(truncated.length).toBeLessThanOrEqual(45);
     });
 
     it('TEST-SRV-03: deve consumir endpoint /api/summarize quando disponível', async () => {
@@ -110,6 +116,65 @@ describe('Serviços do Blog & Admin', () => {
       expect(images.length).toBeGreaterThan(0);
       expect(images[0].url).toContain('unsplash.com');
       expect(images[0].alt).toBeDefined();
+    });
+
+    it('TEST-SRV-08: deve consumir API remota com sucesso para categories, posts e unsplash', async () => {
+      const mockApiCategories = [{ id: 'cat-remote', name: 'REMOTE', slug: 'remote' }];
+      const mockApiPosts = [{
+        id: 'post-remote',
+        title: 'Post Remoto',
+        slug: 'post-remoto',
+        category_id: 'cat-remote',
+        category_name: 'REMOTE',
+        date: '29/09/2026',
+        excerpt: 'Resumo remoto',
+        cover_url: 'https://example.com/img.jpg',
+        cover_alt: 'Alt',
+        content: '<p>Remoto</p>'
+      }];
+
+      vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
+        if (url.includes('/api/categories')) {
+          if (init?.method === 'POST') {
+            return { ok: true, json: async () => JSON.parse(init.body as string) };
+          }
+          return { ok: true, json: async () => mockApiCategories };
+        }
+        if (url.includes('/api/posts')) {
+          if (init?.method === 'POST') {
+            return { ok: true, json: async () => JSON.parse(init.body as string) };
+          }
+          if (init?.method === 'DELETE') {
+            return { ok: true, json: async () => ({ success: true }) };
+          }
+          return { ok: true, json: async () => mockApiPosts };
+        }
+        if (url.includes('/api/unsplash')) {
+          return {
+            ok: true,
+            json: async () => [{ url: 'https://images.unsplash.com/remote', alt: 'Remote Unsplash' }]
+          };
+        }
+        return { ok: false, status: 404 };
+      }));
+
+      const cats = await blogService.getCategories();
+      expect(cats).toEqual(mockApiCategories);
+
+      const createdCat = await blogService.createCategory('Nova Remota');
+      expect(createdCat.name).toBe('NOVA REMOTA');
+
+      const posts = await blogService.getPosts();
+      expect(posts).toEqual(mockApiPosts);
+
+      const createdPost = await blogService.createPost(mockApiPosts[0]);
+      expect(createdPost.title).toBe('Post Remoto');
+
+      const deleteResult = await blogService.deletePost('post-remote');
+      expect(deleteResult).toBe(true);
+
+      const unsplashResults = await blogService.searchUnsplash('science');
+      expect(unsplashResults[0].url).toContain('unsplash.com/remote');
     });
   });
 
