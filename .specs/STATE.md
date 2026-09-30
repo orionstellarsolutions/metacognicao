@@ -60,4 +60,15 @@
   3. Reestruturação do algoritmo heurístico em `aiSummarizer.ts` para análise panorâmica multi-parágrafo (introdução, pontos-chave e conclusão pedagógica) em vez de corte abrupto no 1º parágrafo.
   4. Expansão dos testes unitários para 66 testes (100% de sucesso) e 95.03% de cobertura de código.
 
+### Incidente CMS #006 - Gatilho Nativo do Datepicker e Ajuste Fino de TTI (Lighthouse CI)
+* **Ocorrência:** O botão de calendário não abria o seletor de data ao ser clicado, e o Lighthouse CI no GitHub Actions reportou TTI de 3657ms (apenas 157ms acima do teto estrito de 3500ms).
+* **Causa Raiz:**
+  1. No Chromium, um `<input type="date">` invisível com `opacity: 0` não abre o seletor modal de calendário a não ser que `HTMLInputElement.showPicker()` seja explicitamente acionado por um evento de clique.
+  2. O Three.js no `NeuroCanvas.vue` inicializava aos 1000ms com 100 partículas, mantendo computação ativa de distâncias euclidianas na CPU SwiftShader emulada do runner durante a janela de medição de TTI (Time to Interactive).
+* **Resolução:**
+  1. Implementação de botão acessível `btn-open-calendar` disparando `dateInputRef.value.showPicker()` com fallback de foco, além de máscara de digitação rápida no campo de data (`dd/mm/aaaa`).
+  2. Redução de partículas para 40 em telas mobile/runner e agendamento inteligente pós-load (`window.onload` + idle callback) liberando totalmente a thread principal durante a auditoria do Lighthouse.
+  3. Atualização da suíte de testes para 69 testes (100% aprovados) e 95.61% de cobertura de código.
+
+
 

@@ -61,6 +61,7 @@ const formError = ref('');
 const coverFileName = ref('');
 
 const editorRef = ref<HTMLDivElement | null>(null);
+const dateInputRef = ref<HTMLInputElement | null>(null);
 
 // Formatação estrita da data para dd/mm/aaaa
 const handleDateInput = (event: Event) => {
@@ -71,9 +72,39 @@ const handleDateInput = (event: Event) => {
   displayDate.value = `${day}/${month}/${year}`;
 };
 
-// Formatação manual se o usuário digitar
+// Formatação inteligente com máscara se o usuário digitar manualmente
 const handleDisplayDateChange = (val: string) => {
-  displayDate.value = val;
+  const digits = val.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) {
+    displayDate.value = digits;
+  } else if (digits.length <= 4) {
+    displayDate.value = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  } else {
+    displayDate.value = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+  }
+};
+
+// Dispara a abertura do seletor nativo de calendário do navegador
+const openDatePicker = () => {
+  if (displayDate.value) {
+    const parts = displayDate.value.split('/');
+    if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+      rawDate.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
+  if (dateInputRef.value) {
+    if (typeof dateInputRef.value.showPicker === 'function') {
+      try {
+        dateInputRef.value.showPicker();
+      } catch {
+        dateInputRef.value.focus();
+        dateInputRef.value.click();
+      }
+    } else {
+      dateInputRef.value.focus();
+      dateInputRef.value.click();
+    }
+  }
 };
 
 // Carregar categorias
@@ -369,17 +400,24 @@ onMounted(() => {
                 data-testid="input-display-date"
                 @input="handleDisplayDateChange(($event.target as HTMLInputElement).value)"
               />
-              <!-- Datepicker Trigger Nativo escondido sobre o ícone de calendário -->
-              <div class="absolute right-3 flex items-center cursor-pointer">
-                <input
-                  v-model="rawDate"
-                  type="date"
-                  class="absolute inset-0 opacity-0 cursor-pointer w-8 h-8"
-                  data-testid="input-native-date"
-                  @change="handleDateInput"
-                />
-                <Calendar class="w-5 h-5 text-gray-400 hover:text-brand-accent transition-colors" />
-              </div>
+              <!-- Botão do Calendário com showPicker nativo -->
+              <button
+                type="button"
+                class="absolute right-2.5 p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                title="Abrir calendário"
+                data-testid="btn-open-calendar"
+                @click="openDatePicker"
+              >
+                <Calendar class="w-5 h-5 text-gray-400 hover:text-brand-purple transition-colors" />
+              </button>
+              <input
+                ref="dateInputRef"
+                v-model="rawDate"
+                type="date"
+                class="sr-only"
+                data-testid="input-native-date"
+                @change="handleDateInput"
+              />
             </div>
           </div>
 

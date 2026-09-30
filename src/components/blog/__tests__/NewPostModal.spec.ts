@@ -28,15 +28,29 @@ describe('NewPostModal.vue', () => {
     expect(wrapper.find('[data-testid="btn-save-post"]').exists()).toBe(true);
   });
 
-  it('TEST-POST-02: deve formatar a data para o padrão dd/mm/aaaa a partir do input nativo', async () => {
+  it('TEST-POST-02: deve formatar a data para o padrão dd/mm/aaaa a partir do input nativo e abrir picker pelo botão', async () => {
     const wrapper = mount(NewPostModal);
     await flushPromises();
 
-    const nativeDateInput = wrapper.find('[data-testid="input-native-date"]');
+    // Digitação manual com máscara
+    const displayInput = wrapper.find<HTMLInputElement>('[data-testid="input-display-date"]');
+    await displayInput.setValue('15112026');
+    await displayInput.trigger('input');
+    expect(displayInput.element.value).toBe('15/11/2026');
+
+    // Botão de abrir calendário
+    const openCalendarBtn = wrapper.find('[data-testid="btn-open-calendar"]');
+    expect(openCalendarBtn.exists()).toBe(true);
+
+    const nativeDateInput = wrapper.find<HTMLInputElement>('[data-testid="input-native-date"]');
+    nativeDateInput.element.showPicker = vi.fn();
+
+    await openCalendarBtn.trigger('click');
+    expect(nativeDateInput.element.showPicker).toHaveBeenCalled();
+
+    // Seleção de nova data pelo input nativo
     await nativeDateInput.setValue('2026-10-22');
     await nativeDateInput.trigger('change');
-
-    const displayInput = wrapper.find<HTMLInputElement>('[data-testid="input-display-date"]');
     expect(displayInput.element.value).toBe('22/10/2026');
   });
 
@@ -230,6 +244,56 @@ describe('NewPostModal.vue', () => {
     const imgBtn = wrapper.find('button[title*="Inserir Imagem"]');
     await imgBtn.trigger('click');
     expect(execCommandSpy).toHaveBeenCalledWith('insertHTML', false, expect.stringContaining('img'));
+  });
+
+  it('TEST-POST-11: deve fechar pelo botão X e validar erros de validação ao salvar', async () => {
+    const wrapper = mount(NewPostModal);
+    await flushPromises();
+
+    // Fecha pelo X
+    await wrapper.find('[data-testid="btn-close-modal"]').trigger('click');
+    expect(wrapper.emitted('close')).toBeTruthy();
+
+    // Tenta salvar sem título
+    await wrapper.find('[data-testid="input-post-title"]').setValue('');
+    await wrapper.find('[data-testid="btn-save-post"]').trigger('click');
+    expect(wrapper.find('[data-testid="form-error"]').text()).toContain('O título do post é obrigatório');
+
+    // Preenche título mas apaga data
+    await wrapper.find('[data-testid="input-post-title"]').setValue('Título Válido');
+    await wrapper.find('[data-testid="input-display-date"]').setValue('');
+    await wrapper.find('[data-testid="btn-save-post"]').trigger('click');
+    expect(wrapper.find('[data-testid="form-error"]').text()).toContain('A data do post é obrigatória');
+
+    // Preenche data mas limpa categoria
+    await wrapper.find('[data-testid="input-display-date"]').setValue('22/10/2026');
+    const select = wrapper.find('[data-testid="select-post-category"]');
+    await select.setValue('');
+    await wrapper.find('[data-testid="btn-save-post"]').trigger('click');
+    expect(wrapper.find('[data-testid="form-error"]').text()).toContain('Selecione uma categoria');
+  });
+
+  it('TEST-POST-12: deve inicializar com postToEdit preexistente', async () => {
+    const samplePost = {
+      id: 'post-edit',
+      title: 'Artigo Existente',
+      slug: 'artigo-existente',
+      category_id: 'cat-geral',
+      category_name: 'GERAL',
+      date: '10/10/2026',
+      excerpt: 'Resumo existente',
+      cover_url: 'https://exemplo.com/capa.jpg',
+      cover_alt: 'Alt existente',
+      content: '<p>Conteúdo existente.</p>'
+    };
+
+    const wrapper = mount(NewPostModal, {
+      props: { postToEdit: samplePost }
+    });
+    await flushPromises();
+
+    expect(wrapper.find<HTMLInputElement>('[data-testid="input-post-title"]').element.value).toBe('Artigo Existente');
+    expect(wrapper.find<HTMLInputElement>('[data-testid="input-display-date"]').element.value).toBe('10/10/2026');
   });
 });
 

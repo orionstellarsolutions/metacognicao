@@ -131,4 +131,27 @@ describe('NeuroCanvas.vue', () => {
     expect(wrapper.find('[data-testid="neuro-canvas"]').exists()).toBe(true);
     wrapper.unmount();
   });
+
+  it('TEST-CANVAS-07: deve agendar inicialização via requestIdleCallback quando fora do ambiente de teste', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+
+    let idleCb: () => void = () => {};
+    vi.stubGlobal('requestIdleCallback', vi.fn((cb) => {
+      idleCb = cb;
+      return 1;
+    }));
+
+    const wrapper = mount(NeuroCanvas);
+    await wrapper.vm.$nextTick();
+
+    // Dispara o callback agendado
+    idleCb();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="neuro-canvas"]').exists()).toBe(true);
+
+    process.env.NODE_ENV = originalEnv;
+    wrapper.unmount();
+  });
 });
