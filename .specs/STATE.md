@@ -49,3 +49,15 @@
   4. Redução da malha de partículas de 150 para 100 e inicialização deferida via `requestIdleCallback`/`setTimeout` para liberar imediatamente a thread principal para o FCP/LCP.
   5. Atualização da suíte de testes com 62 testes aprovados (100%) e 95.01% de cobertura de código.
 
+### Incidente CMS #005 - Retenção de Foco na Toolbar e Síntese Panorâmica do Resumo de IA
+* **Ocorrência:** Usuário relatou impossibilidade de aplicar comandos nos botões de formatação (Bold, Italic, Headings, etc.) e insatisfação com o resumo automático que pegava apenas o primeiro parágrafo do artigo.
+* **Causa Raiz:**
+  1. No editor WYSIWYG `contenteditable`, botões normais sofriam `mousedown` nativo roubando o foco do editor e desfazendo a seleção de texto ativa antes do disparo do comando.
+  2. A pasta `functions/api/` não continha o endpoint `functions/api/summarize.js` com o binding `env.AI` (Cloudflare Workers AI), forçando o fallback offline local cujo limite rígido de 220 caracteres cortava o artigo prematuramente na primeira frase.
+* **Resolução:**
+  1. Aplicação de `@mousedown.prevent` em todos os botões da toolbar do `NewPostModal.vue` e garantia de foco ativo com `editorRef.value.focus()`.
+  2. Criação das Cloudflare Pages Functions em `functions/api/`: `summarize.js` (Workers AI Llama 3.1 com prompt editorial), `posts/index.js` (persistência e ordenação D1), `categories/index.js` e `unsplash.js`.
+  3. Reestruturação do algoritmo heurístico em `aiSummarizer.ts` para análise panorâmica multi-parágrafo (introdução, pontos-chave e conclusão pedagógica) em vez de corte abrupto no 1º parágrafo.
+  4. Expansão dos testes unitários para 66 testes (100% de sucesso) e 95.03% de cobertura de código.
+
+

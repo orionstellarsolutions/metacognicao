@@ -171,6 +171,66 @@ describe('NewPostModal.vue', () => {
     expect(wrapper.text()).toContain('pesquisa-capa.jpg');
     expect(wrapper.find('img[alt="Preview da capa"]').exists()).toBe(true);
   });
+
+  it('TEST-POST-09: deve disparar comandos de formatação com retenção de foco', async () => {
+    const execCommandSpy = vi.spyOn(document, 'execCommand').mockImplementation(() => true);
+
+    const wrapper = mount(NewPostModal);
+    await flushPromises();
+
+    const boldBtn = wrapper.find('button[title*="Negrito"]');
+    expect(boldBtn.exists()).toBe(true);
+    await boldBtn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('bold', false, undefined);
+
+    const italicBtn = wrapper.find('button[title*="Itálico"]');
+    await italicBtn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('italic', false, undefined);
+
+    const h2Btn = wrapper.find('button[title*="H2"]');
+    await h2Btn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('formatBlock', false, '<h2>');
+
+    const h3Btn = wrapper.find('button[title*="H3"]');
+    await h3Btn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('formatBlock', false, '<h3>');
+
+    const listBtn = wrapper.find('button[title*="Lista com marcadores"]');
+    await listBtn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('insertUnorderedList', false, undefined);
+
+    const orderedBtn = wrapper.find('button[title*="Lista numerada"]');
+    await orderedBtn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('insertOrderedList', false, undefined);
+
+    const quoteBtn = wrapper.find('button[title*="Citação"]');
+    await quoteBtn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('formatBlock', false, 'blockquote');
+
+    const unlinkBtn = wrapper.find('button[title*="Remover Link"]');
+    await unlinkBtn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('unlink', false, undefined);
+  });
+
+  it('TEST-POST-10: deve inserir link, vídeo e imagem com prompt preenchido', async () => {
+    const execCommandSpy = vi.spyOn(document, 'execCommand').mockImplementation(() => true);
+    vi.stubGlobal('prompt', vi.fn().mockReturnValue('https://teste.com/conteudo'));
+
+    const wrapper = mount(NewPostModal);
+    await flushPromises();
+
+    const linkBtn = wrapper.find('button[title*="Inserir Link"]');
+    await linkBtn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('createLink', false, 'https://teste.com/conteudo');
+
+    const videoBtn = wrapper.find('button[title*="Vídeo"]');
+    await videoBtn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('insertHTML', false, expect.stringContaining('iframe'));
+
+    const imgBtn = wrapper.find('button[title*="Inserir Imagem"]');
+    await imgBtn.trigger('click');
+    expect(execCommandSpy).toHaveBeenCalledWith('insertHTML', false, expect.stringContaining('img'));
+  });
 });
 
 

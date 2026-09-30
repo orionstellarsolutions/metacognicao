@@ -57,6 +57,23 @@ describe('Serviços do Blog & Admin', () => {
       expect(result).toContain('A neurociência estuda o cérebro humano');
     });
 
+    it('deve gerar síntese panorâmica multi-parágrafo a partir de texto com tags HTML', () => {
+      const htmlText = `
+        <p>A investigação em metacognição revolucionou o ensino superior contemporâneo.</p>
+        <p>Durante vinte anos de estudos, coletamos dados de mais de mil estudantes de licenciatura.</p>
+        <p>Conclui-se que o desenvolvimento da autorregulação amplia a autonomia do futuro professor.</p>
+      `;
+      const summary = generateLocalSummary(htmlText, 250);
+      expect(summary).toContain('A investigação em metacognição');
+      expect(summary).toContain('Conclui-se que o desenvolvimento');
+    });
+
+    it('deve gerar síntese panorâmica multi-parágrafo a partir de texto puro', () => {
+      const multiText = 'Primeiro parágrafo longo com fundamentos conceituais e introdução do artigo.\n\nSegundo parágrafo com discussão metodológica aprofundada.\n\nTerceiro parágrafo com conclusões definitivas da pesquisa educacional.';
+      const summary = generateLocalSummary(multiText, 280);
+      expect(summary).toContain('Primeiro parágrafo longo');
+    });
+
     it('deve rejeitar conteúdo vazio ao tentar resumir', async () => {
       await expect(summarizeArticle('   ')).rejects.toThrow('Conteúdo insuficiente');
     });

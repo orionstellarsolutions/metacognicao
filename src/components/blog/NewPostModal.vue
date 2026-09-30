@@ -103,7 +103,10 @@ const onCategoryCreated = (newCat: Category) => {
 
 // Resumo com IA
 const handleGenerateSummary = async () => {
-  const textToSummarize = content.value || title.value;
+  updateContentFromEditor();
+  const rawContent = editorRef.value?.innerText?.trim() || editorRef.value?.textContent?.trim() || content.value;
+  const textToSummarize = rawContent || title.value;
+
   if (!textToSummarize.trim()) {
     formError.value = 'Preencha o conteúdo ou o título antes de gerar o resumo.';
     return;
@@ -113,7 +116,7 @@ const handleGenerateSummary = async () => {
   formError.value = '';
 
   try {
-    const summary = await summarizeArticle(textToSummarize);
+    const summary = await summarizeArticle(textToSummarize, title.value);
     excerpt.value = summary;
   } catch (error) {
     formError.value = error instanceof Error ? error.message : 'Erro ao gerar resumo.';
@@ -153,19 +156,32 @@ const onUnsplashSelect = (img: UnsplashImage) => {
   isUnsplashModalOpen.value = false;
 };
 
-// Comandos da Toolbar Rica
+// Comandos da Toolbar Rica com retenção ativa de foco e seleção
 const execCommand = (command: string, value: string | undefined = undefined) => {
+  if (editorRef.value) {
+    editorRef.value.focus();
+  }
   document.execCommand(command, false, value);
   updateContentFromEditor();
 };
 
 const insertHeading = (level: 'h2' | 'h3') => {
-  document.execCommand('formatBlock', false, `<${level}>`);
+  if (editorRef.value) {
+    editorRef.value.focus();
+  }
+  try {
+    document.execCommand('formatBlock', false, `<${level}>`);
+  } catch {
+    document.execCommand('formatBlock', false, level);
+  }
   updateContentFromEditor();
 };
 
 const insertLink = () => {
-  const url = prompt('Insira a URL do link:');
+  if (editorRef.value) {
+    editorRef.value.focus();
+  }
+  const url = prompt('Insira a URL do link (ex: https://...):');
   if (url) {
     document.execCommand('createLink', false, url);
     updateContentFromEditor();
@@ -173,6 +189,9 @@ const insertLink = () => {
 };
 
 const insertVideo = () => {
+  if (editorRef.value) {
+    editorRef.value.focus();
+  }
   const url = prompt('Insira a URL do vídeo do YouTube:');
   if (url) {
     const embed = `<div class="aspect-video my-4"><iframe class="w-full h-full rounded-xl" src="${url.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen></iframe></div><p></p>`;
@@ -182,6 +201,9 @@ const insertVideo = () => {
 };
 
 const insertInlineImage = () => {
+  if (editorRef.value) {
+    editorRef.value.focus();
+  }
   const url = prompt('Insira a URL da imagem:');
   if (url) {
     const imgHtml = `<img src="${url}" alt="Imagem no corpo do artigo" class="rounded-xl my-4 max-w-full h-auto" /><p></p>`;
@@ -459,62 +481,69 @@ onMounted(() => {
         <div class="lg:col-span-8 flex flex-col space-y-3">
           <!-- Editor Toolbar -->
           <div
-            class="bg-[#0a0d14] border border-gray-800 rounded-2xl p-2.5 flex flex-wrap items-center gap-1.5 shadow-sm"
+            class="bg-[#0a0d14] border border-gray-800 rounded-2xl p-2.5 flex flex-wrap items-center gap-1.5 shadow-sm select-none"
             data-testid="editor-toolbar"
           >
             <!-- Formatações básicas -->
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
-              title="Negrito"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
+              title="Negrito (Ctrl+B)"
+              @mousedown.prevent
               @click="execCommand('bold')"
             >
               <Bold class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
-              title="Itálico"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
+              title="Itálico (Ctrl+I)"
+              @mousedown.prevent
               @click="execCommand('italic')"
             >
               <Italic class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition font-bold text-xs"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition font-bold text-xs"
               title="Subtítulo H2"
+              @mousedown.prevent
               @click="insertHeading('h2')"
             >
               <Heading2 class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition font-bold text-xs"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition font-bold text-xs"
               title="Subtítulo H3"
+              @mousedown.prevent
               @click="insertHeading('h3')"
             >
               <Heading3 class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Lista com marcadores"
+              @mousedown.prevent
               @click="execCommand('insertUnorderedList')"
             >
               <List class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Lista numerada"
+              @mousedown.prevent
               @click="execCommand('insertOrderedList')"
             >
               <ListOrdered class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Citação"
+              @mousedown.prevent
               @click="execCommand('formatBlock', 'blockquote')"
             >
               <Quote class="w-4 h-4" />
@@ -525,16 +554,18 @@ onMounted(() => {
             <!-- Links -->
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Inserir Link"
+              @mousedown.prevent
               @click="insertLink"
             >
               <Link class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Remover Link"
+              @mousedown.prevent
               @click="execCommand('unlink')"
             >
               <Unlink class="w-4 h-4" />
@@ -545,32 +576,36 @@ onMounted(() => {
             <!-- Alinhamentos -->
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Alinhar à Esquerda"
+              @mousedown.prevent
               @click="execCommand('justifyLeft')"
             >
               <AlignLeft class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Centralizar"
+              @mousedown.prevent
               @click="execCommand('justifyCenter')"
             >
               <AlignCenter class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Alinhar à Direita"
+              @mousedown.prevent
               @click="execCommand('justifyRight')"
             >
               <AlignRight class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-gray-300 hover:text-white hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Justificar"
+              @mousedown.prevent
               @click="execCommand('justifyFull')"
             >
               <AlignJustify class="w-4 h-4" />
@@ -581,16 +616,18 @@ onMounted(() => {
             <!-- Mídia -->
             <button
               type="button"
-              class="p-2 text-red-400 hover:text-red-300 hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-red-400 hover:text-red-300 hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Inserir Vídeo do YouTube"
+              @mousedown.prevent
               @click="insertVideo"
             >
               <Video class="w-4 h-4" />
             </button>
             <button
               type="button"
-              class="p-2 text-emerald-400 hover:text-emerald-300 hover:bg-white/10 rounded-lg transition"
+              class="p-2 text-emerald-400 hover:text-emerald-300 hover:bg-white/10 active:scale-95 rounded-lg transition"
               title="Inserir Imagem via URL"
+              @mousedown.prevent
               @click="insertInlineImage"
             >
               <ImageIcon class="w-4 h-4" />
