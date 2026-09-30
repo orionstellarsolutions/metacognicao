@@ -92,7 +92,7 @@ const initThreeJS = () => {
     renderer.setSize(window.innerWidth, window.innerHeight * 0.9);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-    const particlesCount = 150;
+    const particlesCount = 100;
     const posArray = new Float32Array(particlesCount * 3);
     for (let i = 0; i < particlesCount * 3; i++) {
       posArray[i] = (Math.random() - 0.5) * 15;
@@ -208,7 +208,15 @@ const cleanup = () => {
 };
 
 onMounted(() => {
-  initThreeJS();
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
+    initThreeJS();
+    return;
+  }
+  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+    (window as any).requestIdleCallback(() => initThreeJS(), { timeout: 1000 });
+  } else {
+    setTimeout(() => initThreeJS(), 50);
+  }
 });
 
 onUnmounted(() => {

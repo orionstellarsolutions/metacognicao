@@ -3,10 +3,17 @@
     "collect": {
       "startServerCommand": "npm run preview",
       "startServerReadyPattern": "ready|Local:|http",
-      "url": ["http://localhost:3000"]
+      "url": ["http://localhost:3000"],
+      "numberOfRuns": 3,
+      "settings": {
+        "chromeFlags": "--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
+      }
     },
     "assert": {
       "budgetsFile": "./lighthouse-budget.json"
+    },
+    "upload": {
+      "target": "temporary-public-storage"
     }
   }
 }

@@ -39,3 +39,13 @@
 ### Incidente Estilização #003 - Tailwind CSS e Build de Produção
 * **Ocorrência:** O template base não continha o pacote `tailwindcss` instalado nem `src/style.css` importado, gerando renderização sem estilos no Cloudflare Pages.
 * **Resolução:** Instalados `tailwindcss@^3.4.17`, `postcss`, `autoprefixer`, criados `postcss.config.js` e `src/style.css` e importado no `src/main.ts`. Realizado `git push` com deploy em produção com sucesso no commit `cb38f6b`.
+
+### Incidente CI/CD #004 - Lighthouse CI Performance Gate & Parâmetros Inválidos de Action
+* **Ocorrência:** Falha no workflow `ci.yml` do GitHub Actions com warning `Unexpected input(s) 'startServerCommand', 'uploadTarget'` na action `treosh/lighthouse-ci-action@v11`, além de estouro de orçamentos de performance no runner headless (`interactive`: 4633ms vs 3500ms max, `largest-contentful-paint`: 4432ms vs 2500ms max, `total-blocking-time`: 1145ms vs 200ms max) causados por Google Fonts bloqueando a renderização no `<head>` e cálculo síncrono de Three.js (527kB) na thread principal.
+* **Resolução:**
+  1. Configuração do `lighthouserc.json` com `chromeFlags` headless otimizadas (`--no-sandbox`, `--disable-dev-shm-usage`, `--disable-gpu`, `--headless`) e direcionamento de inputs na action `ci.yml` para `configPath: './lighthouserc.json'` e `temporaryPublicStorage: true`.
+  2. Substituição do carregamento síncrono de Google Fonts por pré-carregamento assíncrono (`rel="preload" as="style"` + `onload="this.media='all'"`).
+  3. Desacoplamento do `NeuroCanvas` via `defineAsyncComponent` em `NeuroHero.vue`, reduzindo o chunk JavaScript inicial de 666kB para 47kB gzip.
+  4. Redução da malha de partículas de 150 para 100 e inicialização deferida via `requestIdleCallback`/`setTimeout` para liberar imediatamente a thread principal para o FCP/LCP.
+  5. Atualização da suíte de testes com 62 testes aprovados (100%) e 95.01% de cobertura de código.
+

@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue';
 import { ArrowRight, ChevronRight, Play, ArrowDown } from '@lucide/vue';
-import NeuroCanvas from './NeuroCanvas.vue';
+
+const NeuroCanvas = defineAsyncComponent(() => import('./NeuroCanvas.vue'));
 </script>
 
 <template>

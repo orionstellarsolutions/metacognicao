@@ -38,8 +38,5 @@ jobs:
       - name: Auditoria de Performance Mobile (Lighthouse CI)
         uses: treosh/lighthouse-ci-action@v11
         with:
-          urls: |
-            http://localhost:3000
-          startServerCommand: npm run preview
-          uploadTarget: 'temporary-public-storage'
-          budgetPath: './lighthouse-budget.json'
+          configPath: './lighthouserc.json'
+          temporaryPublicStorage: true

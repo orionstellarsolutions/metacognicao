@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --port 3000",
+    "preview": "vite preview --port 3000 --host 0.0.0.0",
     "lint": "eslint .",
     "type-check": "vue-tsc --noEmit",
     "test:coverage": "vitest run --coverage"
